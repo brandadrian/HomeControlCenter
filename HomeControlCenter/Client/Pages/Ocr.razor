@@ -1,0 +1,68 @@
+﻿@page "/ocr"
+@using System.Net.Http.Headers
+
+<PageTitle>OCR</PageTitle>
+
+<h1>OCR</h1>
+
+<div class="row">
+    <div class="col-4">
+        <div class="form-group">
+            <InputFile OnChange="OnSelectFile" />
+        </div>
+    </div>
+</div>
+<br/>
+<button class="btn btn-primary" @onclick="OnReadText">Text auslesen</button>
+<br/>
+<br/>
+<p>@_result</p>
+
+@code {
+    private string _base64File;
+    private string _result;
+
+    public async Task OnSelectFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            var file = e.File;
+
+            using var resultStream = new MemoryStream();
+            await using var inputStream = file.OpenReadStream(50000000);
+            await inputStream.CopyToAsync(resultStream);
+            var bytes = resultStream.ToArray();
+            _base64File = Convert.ToBase64String(bytes, 0, bytes.Length);
+        }
+        catch (Exception ex)
+        {
+            _result = ex.Message;
+        }
+    }
+
+    public async Task OnReadText()
+    {
+        try
+        {
+            _result = "Loading...";
+
+            var request = new OcrRequest()
+            {
+                Base64File = _base64File
+            };
+
+            using var client = new HttpClient();
+            var response = await client.PostAsJsonAsync("https://homecontrolfunctions.azurewebsites.net/api/GetTextFromImage?", request);
+            _result = await response.Content.ReadAsStringAsync();
+        }
+        catch (Exception ex)
+        {
+            _result = ex.ToString();
+        }
+    }
+
+    private class OcrRequest
+    {
+        public string Base64File { get; set; }
+    }
+}
