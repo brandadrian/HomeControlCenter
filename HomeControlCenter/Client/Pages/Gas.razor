@@ -7,16 +7,14 @@
 <table class="table">
     <thead>
     <tr>
-        <th>Id</th>
         <th>Timestamp</th>
-        <th>Value</th>
+        <th>Gas Meter [m3]</th>
     </tr>
     </thead>
     <tbody>
     @foreach (var gasRecord in _gasRecords)
     {
         <tr>
-            <td>@gasRecord.Id</td>
             <td>@gasRecord.Timestamp</td>
             <td>@gasRecord.Value</td>
         </tr>
