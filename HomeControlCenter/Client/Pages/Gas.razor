@@ -4,6 +4,52 @@
 
 <h1>Gas</h1>
 
-@code {
+<table class="table">
+    <thead>
+    <tr>
+        <th>Id</th>
+        <th>Timestamp</th>
+        <th>Value</th>
+    </tr>
+    </thead>
+    <tbody>
+    @foreach (var gasRecord in _gasRecords)
+    {
+        <tr>
+            <td>@gasRecord.Id</td>
+            <td>@gasRecord.Timestamp</td>
+            <td>@gasRecord.Value</td>
+        </tr>
+    }
+    </tbody>
+</table>
 
+@code {
+    private List<GasRecordDto> _gasRecords = new List<GasRecordDto>();
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+
+            using var client = new HttpClient();
+            var records = await client.GetFromJsonAsync<List<GasRecordDto>>("https://homecontrolfunctions.azurewebsites.net/api/GetGasRecords?");
+            _gasRecords = records.OrderByDescending(r => r.Timestamp).ToList();
+        }
+        catch (Exception ex)
+        {
+            _gasRecords = new List<GasRecordDto>();
+        }
+    }
+
+    public class GasRecordDto
+    {
+        public int Id { get; set; }
+
+        public DateTime Timestamp { get; set; }
+
+        public int? Value { get; set; }
+
+        public string ValueRaw { get; set; }
+    }
 }
