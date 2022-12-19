@@ -1,4 +1,5 @@
 ﻿@page "/gas"
+@using System.Text.Json.Serialization
 
 <PageTitle>Gas</PageTitle>
 
@@ -9,24 +10,38 @@
     <tr>
         <th>Timestamp</th>
         <th>Gas Meter [m3]</th>
+        <th>Extracted Image Data</th>
+        <th>Image</th>
     </tr>
     </thead>
     <tbody>
-    @foreach (var gasRecord in _gasRecords)
-    {
-        <tr>
-            <td>@gasRecord.Timestamp</td>
-            <td>@gasRecord.Value</td>
-        </tr>
+        @if (_isLoading)
+        {
+            <p>Loading...</p>
+        }
+        else
+        {
+            @foreach (var gasRecord in _gasRecords)
+            {
+            <tr>
+                <td>@gasRecord.Timestamp</td>
+                <td>@gasRecord.Value</td>
+                <td>@gasRecord.ValueRaw</td>
+                <td><img src="@gasRecord.ImageUrl"/></td>
+            </tr>
+        }
     }
     </tbody>
 </table>
 
 @code {
     private List<GasRecordDto> _gasRecords = new List<GasRecordDto>();
+    private bool _isLoading = true;
 
     protected override async Task OnInitializedAsync()
     {
+        _isLoading = true;
+
         try
         {
 
@@ -38,6 +53,8 @@
         {
             _gasRecords = new List<GasRecordDto>();
         }
+
+        _isLoading = false;
     }
 
     public class GasRecordDto
@@ -49,5 +66,10 @@
         public int? Value { get; set; }
 
         public string ValueRaw { get; set; }
+
+        public string Image { get; set; }
+
+        [JsonIgnore]
+        public string ImageUrl => $"data:image/jpg;base64,{Image}";
     }
 }
